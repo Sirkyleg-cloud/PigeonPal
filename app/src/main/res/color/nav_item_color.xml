@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- nav_item_color.xml - Color selector for nav items -->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+    <selector> allows different colors based on state
+    Android checks from top to bottom, uses first match
+    -->
+
+    <item
+        android:color="#1A5276"
+        android:state_checked="true"/>
+    <!-- Dark blue when SELECTED (checked) -->
+
+    <item
+        android:color="#95A5A6"/>
+    <!-- Gray when NOT selected (default state) -->
+
+</selector>

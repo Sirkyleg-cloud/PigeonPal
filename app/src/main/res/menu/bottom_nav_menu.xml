@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- bottom_nav_menu.xml - Defines Bottom Navigation items -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+    Each <item> represents one tab in the navigation -->
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home"
+        android:title="Home"/>
+    <!--
+    android:id="@+id/nav_home" - Unique ID to detect clicks
+    android:icon="@drawable/ic_home" - Reference to our icon
+    android:title="Home" - Text label below icon -->
+    <item
+        android:id="@+id/nav_graphs"
+        android:icon="@drawable/ic_chart"
+        android:title="Graphs"/>
+
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="Settings"/>
+
+</menu>

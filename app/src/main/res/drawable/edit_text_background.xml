@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edit_text_background.xml - Custom background for input fields -->
+
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Creates a drawable shape -->
+
+    <solid android:color="#F8F9FA"/>
+    <!-- Fill with light gray -->
+
+    <corners android:radius="8dp"/>
+    <!-- Rounded corners -->
+
+    <stroke
+        android:width="1dp"
+        android:color="#BDC3C7"/>
+    <!-- Border -->
+
+    <padding
+        android:left="12dp"
+        android:top="12dp"
+        android:right="12dp"
+        android:bottom="12dp"/>
+    <!-- Inner padding -->
+</shape>
