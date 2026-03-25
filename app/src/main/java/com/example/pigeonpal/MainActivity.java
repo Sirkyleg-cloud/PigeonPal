@@ -133,7 +133,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    ValueAnimator valueAnimator = ValueAnimator.ofArgb(Color.RED, Color.GREEN);
 
     private void updateRadioStatus() {
         if (radioStatus == false) {
