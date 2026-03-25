@@ -6,6 +6,7 @@ import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -94,6 +95,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 updateUvLampStatus();
+                uvLampCard.setCardBackgroundColor(Color.LTGRAY);
+
+                new Handler().postDelayed(() ->
+                        uvLampCard.setCardBackgroundColor(Color.WHITE),125
+                );
             }
         });
     }
@@ -103,12 +109,10 @@ public class MainActivity extends AppCompatActivity {
             lampSubTxt.setText("UV Lamp is on");
             ivLamp.setImageResource(R.drawable.ic_lamp_on);
             uvLampStatus = true;
-            uvLampCard.setCardBackgroundColor(Color.parseColor("#A8E4A0"));
         } else {
             lampSubTxt.setText("UV Lamp is off");
             ivLamp.setImageResource(R.drawable.ic_lamp_off);
             uvLampStatus = false;
-            uvLampCard.setCardBackgroundColor(Color.parseColor("#E4717A"));
         }
     }
 
@@ -121,6 +125,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 updateRadioStatus();
+                radioCard.setCardBackgroundColor(Color.LTGRAY);
+
+                new Handler().postDelayed(() ->
+                        radioCard.setCardBackgroundColor(Color.WHITE),125
+                );
             }
         });
     }
@@ -131,12 +140,10 @@ public class MainActivity extends AppCompatActivity {
             radioSubTxt.setText("Radio is on");
             ivRadio.setImageResource(R.drawable.ic_radio_on);
             radioStatus = true;
-            radioCard.setCardBackgroundColor(Color.parseColor("#A8E4A0"));
         } else {
             radioSubTxt.setText("Radio is off");
             ivRadio.setImageResource(R.drawable.ic_radio_off);
             radioStatus = false;
-            radioCard.setCardBackgroundColor(Color.parseColor("#E4717A"));
         }
     }
 
