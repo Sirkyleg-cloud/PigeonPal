@@ -8,12 +8,12 @@
     -->
 
     <item
-        android:color="#1A5276"
+        android:color="@color/purple_dark"
         android:state_checked="true"/>
     <!-- Dark blue when SELECTED (checked) -->
 
     <item
-        android:color="#95A5A6"/>
+        android:color="@color/purple_grey"/>
     <!-- Gray when NOT selected (default state) -->
 
 </selector>

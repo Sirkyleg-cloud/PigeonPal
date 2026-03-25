@@ -2,7 +2,7 @@
 <!-- switch_track_color.xml - Color for switch track (background) -->
 
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="#85C1E9" android:state_checked="true"/>
+    <item android:color="@color/purple_grey" android:state_checked="true"/>
     <!-- Light blue when ON -->
     <item android:color="#D5D8DC"/>
     <!-- Light gray when OFF -->

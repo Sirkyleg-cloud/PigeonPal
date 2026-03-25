@@ -2,8 +2,8 @@
 <!-- switch_thumb_color.xml - Color for switch thumb (circle) -->
 
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="#1A5276" android:state_checked="true"/>
+    <item android:color="@color/purple_dark" android:state_checked="true"/>
     <!-- Dark blue when ON -->
-    <item android:color="#BDC3C7"/>
+    <item android:color="@color/purple_grey"/>
     <!-- Gray when OFF -->
 </selector>

@@ -21,28 +21,48 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="24dp">
 
             <!-- Title -->
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="PigeonPal"
-                android:textSize="32sp"
-                android:textColor="#1A5276"
-                android:textStyle="bold"/>
+                android:orientation="horizontal"
+                android:paddingVertical="24dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tvTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PigeonPal"
+                        android:textSize="32sp"
+                        android:textColor="@color/purple_dark"
+                        android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/tvSubtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="For your pigeon needs"
-                android:textSize="16sp"
-                android:textColor="#7F8C8D"
-                android:layout_marginBottom="32dp"/>
+                    <TextView
+                        android:id="@+id/tvSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="For your pigeon needs"
+                        android:textSize="16sp"
+                        android:textColor="@color/purple_grey" />
+                </LinearLayout>
 
-            <!-- Sensor Value Card -->
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="2"
+                    android:src="@drawable/ic_pigeon_head"
+                    app:itemIconTint="#FFFFFF"
+                    android:layout_gravity="center" />
+
+            </LinearLayout>
+            <!-- Cage Temperature Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -63,7 +83,7 @@
                         android:layout_height="wrap_content"
                         android:text="Current Cage Temperature"
                         android:textSize="14sp"
-                        android:textColor="#7F8C8D"
+                        android:textColor="@color/purple_dark"
                         android:layout_marginBottom="8dp"/>
 
                     <TextView
@@ -72,19 +92,19 @@
                         android:layout_height="wrap_content"
                         android:text="--"
                         android:textSize="48sp"
-                        android:textColor="#95A5A6"
+                        android:textColor="@color/purple_grey"
                         android:textStyle="bold"/>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-
+            <!-- UV Lamp Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#F8F9FA">
+                app:cardBackgroundColor="#FFFFFF">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -94,29 +114,114 @@
                     android:gravity="center_vertical">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_weight="2"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="UV Lamp"
-                            android:textSize="16sp"
-                            android:textColor="#2C3E50"/>
+                            android:textColor="@color/purple_dark"
+                            android:textSize="16sp" />
 
                         <TextView
-                            android:id="@+id/switchSubTxt"
+                            android:id="@+id/lampSubTxt"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Toggle UV lamp"
-                            android:textSize="12sp"
-                            android:textColor="#7F8C8D"/>
+                            android:textColor="@color/purple_grey"
+                            android:textSize="12sp" />
+
 
                     </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_lamp_off"
+                            app:itemIconTint="#FFFFFF"
+                            android:layout_gravity="center"
+                            android:id="@+id/ivLamp" />
+
+
+                    </LinearLayout>
+
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchLamp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:thumbTint="@color/switch_thumb_color"
+                        app:trackTint="@color/switch_track_color"/>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <!-- Radio Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Radio"
+                            android:textColor="@color/purple_dark"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/radioSubTxt"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Toggle Radio"
+                            android:textColor="@color/purple_grey"
+                            android:textSize="12sp" />
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_radio_off"
+                            app:itemIconTint="#FFFFFF"
+                            android:layout_gravity="center"
+                            android:id="@+id/ivRadio" />
+
+
+                    </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchRadio"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:thumbTint="@color/switch_thumb_color"

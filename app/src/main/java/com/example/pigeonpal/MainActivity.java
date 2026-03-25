@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,7 +22,11 @@ public class MainActivity extends AppCompatActivity {
     // Member variables - accessible throughout the class
     private TextView tvSensorValue;
     private SwitchMaterial switchLamp;
-    private TextView switchSubTxt;
+    private TextView lampSubTxt;
+    private ImageView ivLamp;
+    private SwitchMaterial switchRadio;
+    private TextView radioSubTxt;
+    private ImageView ivRadio;
     private TextView tvSensorStatus;
     private EditText etTestValue;
     private Button btnUpdate;
@@ -49,9 +54,20 @@ public class MainActivity extends AppCompatActivity {
 
         switchLamp.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                switchSubTxt.setText("UV Lamp is on");
+                lampSubTxt.setText("UV Lamp is on");
+                ivLamp.setImageResource(R.drawable.ic_lamp_on);
             } else {
-                switchSubTxt.setText("UV Lamp is off");
+                lampSubTxt.setText("UV Lamp is off");
+                ivLamp.setImageResource(R.drawable.ic_lamp_off);
+            }
+        });
+        switchRadio.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                radioSubTxt.setText("Radio is on");
+                ivRadio.setImageResource(R.drawable.ic_radio_on);
+            } else {
+                radioSubTxt.setText("Radio is off");
+                ivRadio.setImageResource(R.drawable.ic_radio_off);
             }
         });
     }
@@ -65,14 +81,14 @@ public class MainActivity extends AppCompatActivity {
 // onResume is called when activity becomes visible
 // Useful for refreshing data after navigating away and back
 
-    /**
-     * Find all views in the layout
-     */
     private void initializeViews() {
         tvSensorValue = findViewById(R.id.tvSensorValue);
-        switchSubTxt = findViewById(R.id.switchSubTxt);
+        lampSubTxt = findViewById(R.id.lampSubTxt);
         switchLamp = findViewById(R.id.switchLamp);
-
+        ivLamp = findViewById(R.id.ivLamp);
+        radioSubTxt = findViewById(R.id.radioSubTxt);
+        switchRadio = findViewById(R.id.switchRadio);
+        ivRadio = findViewById(R.id.ivRadio);
         /*
         tvSensorStatus = findViewById(R.id.tvSensorStatus);
         etTestValue = findViewById(R.id.etTestValue);
