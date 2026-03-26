@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF">
+    android:background="@color/backgroundColor">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -26,7 +26,7 @@
                 android:layout_height="wrap_content"
                 android:text="Settings"
                 android:textSize="32sp"
-                android:textColor="#1A5276"
+                android:textColor="@color/TextMain"
                 android:textStyle="bold"
                 android:layout_marginBottom="32dp"/>
 
@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:text="Automation"
                 android:textSize="18sp"
-                android:textColor="#1A5276"
+                android:textColor="@color/TextMain"
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp"/>
 
@@ -47,7 +47,7 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#F8F9FA">
+                app:cardBackgroundColor="@color/cardBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -67,14 +67,14 @@
                             android:layout_height="wrap_content"
                             android:text="Enable Automation"
                             android:textSize="16sp"
-                            android:textColor="#2C3E50"/>
+                            android:textColor="@color/TextMain"/>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Automatically respond to sensor values"
                             android:textSize="12sp"
-                            android:textColor="#7F8C8D"/>
+                            android:textColor="@color/TextSub"/>
 
                     </LinearLayout>
                     <com.google.android.material.switchmaterial.SwitchMaterial
@@ -93,7 +93,7 @@
                 android:layout_height="wrap_content"
                 android:text="Notifications"
                 android:textSize="18sp"
-                android:textColor="#1A5276"
+                android:textColor="@color/TextMain"
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp"
                 android:layout_marginTop="16dp"/>
@@ -104,7 +104,7 @@
                 android:layout_marginBottom="24dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#F8F9FA">
+                app:cardBackgroundColor="@color/cardBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -124,14 +124,14 @@
                             android:layout_height="wrap_content"
                             android:text="Push Notifications"
                             android:textSize="16sp"
-                            android:textColor="#2C3E50"/>
+                            android:textColor="@color/TextMain"/>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Receive alerts when values exceed thresholds"
                             android:textSize="12sp"
-                            android:textColor="#7F8C8D"/>
+                            android:textColor="@color/TextSub"/>
 
                     </LinearLayout>
 
@@ -143,6 +143,37 @@
                         app:trackTint="@color/switch_track_color"/>
 
                 </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dark Mode"
+                android:textSize="18sp"
+                android:textColor="@color/TextMain"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"/>
+            <!-- Dark Mode Toggle -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/cardBackground">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/darkModeSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Dark Mode"
+                    android:textColor="@color/TextMain"
+                    app:thumbTint="@color/switch_thumb_color"
+                    app:trackTint="@color/switch_track_color"
+                    android:textStyle="bold"
+                    app:switchPadding="16dp"
+                    android:padding="16dp"
+                    />
+
             </androidx.cardview.widget.CardView>
 
             <!-- Save Button -->
@@ -166,6 +197,34 @@
                 android:textSize="14sp"
                 android:textColor="#27AE60"/>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <!-- Horizontal = children side by side -->
+
+                <EditText
+                    android:id="@+id/nameInput"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Enter Pigeon Name"
+                    android:padding="16dp"
+                    android:background="@drawable/edit_text_background"
+                    android:textColor="#2C3E50"
+                    android:textColorHint="#95A5A6"/>
+
+                <Button
+                    android:id="@+id/nameUpdate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Update"
+                    android:layout_marginStart="12dp"
+                    android:backgroundTint="@color/TextMain"
+                    android:textColor="#FFFFFF"
+                    android:padding="16dp"/>
+
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
@@ -173,7 +232,7 @@
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/cardBackground"
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"

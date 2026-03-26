@@ -1,38 +1,35 @@
 package com.example.pigeonpal;
-// Package declaration - this file belongs to com.example.example1
 
-
-import android.animation.ValueAnimator;
 import android.content.Intent;
-import android.graphics.Color;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.cardview.widget.CardView;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Member variables - accessible throughout the class
     private TextView tvSensorValue;
+    private CardView uvLampCard;
     private TextView lampSubTxt;
     private ImageView ivLamp;
     private CardView radioCard;
     private TextView radioSubTxt;
     private ImageView ivRadio;
-    private CardView uvLampCard;
-
+    private CardView ambientCard;
+    private TextView ambientSubTxt;
+    private ImageView ivAmbient;
+    
     private boolean uvLampStatus = false;
     private boolean radioStatus = false;
+    private boolean ambientStatus = false;
+    
+    private TextView pigeonName;
+    private Boolean darkPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,17 +39,24 @@ public class MainActivity extends AppCompatActivity {
         setupBottomNavigation();
         setupUvLampListener();
         setupRadioListener();
-    }
+        setupAmbientLightListener();
 
+        SharedPreferences darkPref = getSharedPreferences("darkModePrefs", MODE_PRIVATE);
+        boolean isDarkModeOn = darkPref.getBoolean("isDarkModeOn", false);
+
+        if (isDarkModeOn) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-  // NEW: Update count when returning to screen
+        // Refresh the pigeon name whenever we return to this screen
+        displayPigeonName();
     }
-// onResume is called when activity becomes visible
-// Useful for refreshing data after navigating away and back
-
     private void initializeViews() {
         tvSensorValue = findViewById(R.id.tvSensorValue);
         uvLampCard = findViewById(R.id.uvLampCard);
@@ -61,12 +65,18 @@ public class MainActivity extends AppCompatActivity {
         radioCard = findViewById(R.id.radioCard);
         radioSubTxt = findViewById(R.id.radioSubTxt);
         ivRadio = findViewById(R.id.ivRadio);
-
+        ambientCard = findViewById(R.id.ambientCard);
+        ambientSubTxt = findViewById(R.id.ambientSubTxt);
+        ivAmbient = findViewById(R.id.ivAmbient);
+        pigeonName = findViewById(R.id.pigeonName);
     }
 
-    /**
-     * Set up bottom navigation
-     */
+    private void displayPigeonName() {
+        SharedPreferences prefs = getSharedPreferences("PigeonPrefs", MODE_PRIVATE);
+        String savedName = prefs.getString("pigeon_name", "Unset");
+        pigeonName.setText(savedName);
+    }
+
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigation);
         bottomNav.setSelectedItemId(R.id.nav_home);
@@ -86,26 +96,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Set up lamp card click listeners
-     */
     private void setupUvLampListener() {
-        uvLampCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                updateUvLampStatus();
-                uvLampCard.setCardBackgroundColor(Color.LTGRAY);
-
-                new Handler().postDelayed(() ->
-                        uvLampCard.setCardBackgroundColor(Color.WHITE),125
-                );
-            }
+        uvLampCard.setOnClickListener(v -> {
+            updateUvLampStatus();
+            uvLampCard.setCardBackgroundColor(getColor(R.color.cardPress));
+            new Handler().postDelayed(() ->
+                    uvLampCard.setCardBackgroundColor(getColor(R.color.cardBackground)), 125
+            );
         });
     }
 
     private void updateUvLampStatus() {
-        if (uvLampStatus == false) {
+        if (!uvLampStatus) {
             lampSubTxt.setText("UV Lamp is on");
             ivLamp.setImageResource(R.drawable.ic_lamp_on);
             uvLampStatus = true;
@@ -116,26 +118,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Set up radio card click listeners
-     */
     private void setupRadioListener() {
-        radioCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                updateRadioStatus();
-                radioCard.setCardBackgroundColor(Color.LTGRAY);
-
-                new Handler().postDelayed(() ->
-                        radioCard.setCardBackgroundColor(Color.WHITE),125
-                );
-            }
+        radioCard.setOnClickListener(v -> {
+            updateRadioStatus();
+            radioCard.setCardBackgroundColor(getColor(R.color.cardPress));
+            new Handler().postDelayed(() ->
+                    radioCard.setCardBackgroundColor(getColor(R.color.cardBackground)), 125
+            );
         });
     }
 
     private void updateRadioStatus() {
-        if (radioStatus == false) {
+        if (!radioStatus) {
             radioSubTxt.setText("Radio is on");
             ivRadio.setImageResource(R.drawable.ic_radio_on);
             radioStatus = true;
@@ -146,14 +140,31 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setupAmbientLightListener() {
+        ambientCard.setOnClickListener(v -> {
+            updateAmbientLightStatus();
+            ambientCard.setCardBackgroundColor(getColor(R.color.cardPress));
+            new Handler().postDelayed(() ->
+                    ambientCard.setCardBackgroundColor(getColor(R.color.cardBackground)), 125
+            );
+        });
+    }
 
-    /**
-     * Helper method for navigation
-     */
+    private void updateAmbientLightStatus() {
+        if (!ambientStatus) {
+            ambientSubTxt.setText("Ambient Light is on");
+            ivAmbient.setImageResource(R.drawable.ic_room_light_on);
+            ambientStatus = true;
+        } else {
+            ambientSubTxt.setText("Ambient Light is off");
+            ivAmbient.setImageResource(R.drawable.ic_room_light_off);
+            ambientStatus = false;
+        }
+    }
+
     private void navigateToActivity(Class<?> activityClass) {
         Intent intent = new Intent(MainActivity.this, activityClass);
         startActivity(intent);
         finish();
     }
-
 }

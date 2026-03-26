@@ -11,4 +11,10 @@
     <color name="purple_dark">#4b0082</color>
     <color name="purple_med">#8601AF</color>
     <color name="purple_grey">#856088</color>
+
+    <color name="backgroundColor">#FFFFFFFF</color>
+    <color name="TextMain">#4b0082</color>
+    <color name="TextSub">#8601AF</color>
+    <color name="cardBackground">#F8F9FA</color>
+    <color name="cardPress">#CCCCCC</color>
 </resources>
