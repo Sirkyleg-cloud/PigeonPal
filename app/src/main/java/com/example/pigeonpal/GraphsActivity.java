@@ -4,6 +4,7 @@ package com.example.pigeonpal;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,23 +33,41 @@ import java.util.Locale;
 
 public class GraphsActivity extends AppCompatActivity {
 
-    // Chart references
     private LineChart lineChart;
-    private BarChart barChart;
-    private PieChart pieChart;
     private TextView tvDataInfo;
+    private SocketManager socketManager;
 
-    // Colors for charts
-    private static final int COLOR_RED = Color.parseColor("#E74C3C");
-    private static final int COLOR_YELLOW = Color.parseColor("#F39C12");
-    private static final int COLOR_GREEN = Color.parseColor("#27AE60");
     private static final int COLOR_BLUE = Color.parseColor("#3498DB");
+
+    private final SocketManager.SocketListener socketListener = new SocketManager.SocketListener() {
+        @Override
+        public void onSocketConnected() {
+            Log.d("Graphs", "Socket connected");
+        }
+
+        @Override
+        public void onSocketDisconnected() {
+            Log.d("Graphs", "Socket disconnected");
+        }
+
+        @Override
+        public void onMessageReceived(float message, Boolean lamp, Boolean light, Boolean radio) {
+            // Refresh charts when new data arrives
+            runOnUiThread(() -> loadCharts());
+        }
+
+        @Override
+        public void onError(Exception e) {
+            Log.e("Graphs", "Socket error: " + e.getMessage());
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graphs);
 
+        socketManager = SocketManager.getInstance();
         initializeViews();
         setupBottomNavigation();
         loadCharts();
@@ -57,13 +76,18 @@ public class GraphsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadCharts();  // Refresh charts when returning to screen
+        socketManager.addListener(socketListener);
+        loadCharts();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        socketManager.removeListener(socketListener);
     }
 
     private void initializeViews() {
         lineChart = findViewById(R.id.lineChart);
-        barChart = findViewById(R.id.barChart);
-        pieChart = findViewById(R.id.pieChart);
         tvDataInfo = findViewById(R.id.tvDataInfo);
     }
 
@@ -86,222 +110,65 @@ public class GraphsActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Load all charts with data
-     */
     private void loadCharts() {
         List<SensorReading> readings = DataManager.getInstance().getAllReadings();
 
-        // Update info text
         if (readings.isEmpty()) {
             tvDataInfo.setText("No data yet - add readings on Home screen");
         } else {
             tvDataInfo.setText("Showing " + readings.size() + " readings");
         }
 
-        // Setup each chart
         setupLineChart(readings);
-        setupBarChart(readings);
-        setupPieChart(readings);
     }
 
-// ============================================================
-// LINE CHART - Shows trend over time
-// ============================================================
-private void setupLineChart(List<SensorReading> readings) {
-    // Create entries for the chart
-    ArrayList<Entry> entries = new ArrayList<>();
-    ArrayList<String> labels = new ArrayList<>();
-
-    // SimpleDateFormat formats timestamps into readable strings
-    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
-    // "HH:mm:ss" = hours:minutes:seconds (24-hour format)
-
-    for (int i = 0; i < readings.size(); i++) {
-        SensorReading reading = readings.get(i);
-        try {
-            entries.add(new Entry(i, reading.getValue()));
-            // Create time label for this point
-            labels.add(sdf.format(new Date(reading.getTimestamp())));
-        } catch (NumberFormatException e) {
-            // Skip invalid readings
-        }
-    }
-
-    if (entries.isEmpty()) {
-        lineChart.clear();
-        lineChart.setNoDataText("No data available");
-        lineChart.invalidate();  // Refresh the chart
-        return;
-    }
-
-    // Create dataset from entries
-    LineDataSet dataSet = new LineDataSet(entries, "Sensor Values");
-
-    // Customize appearance
-    dataSet.setColor(COLOR_BLUE);           // Line color
-    dataSet.setCircleColor(COLOR_BLUE);     // Point color
-    dataSet.setLineWidth(2f);               // Line thickness
-    dataSet.setCircleRadius(4f);            // Point size
-    dataSet.setDrawValues(true);            // Show values on points
-    dataSet.setValueTextSize(10f);          // Value text size
-    dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);  // Smooth curve
-    // CUBIC_BEZIER makes the line curved instead of straight
-
-    // Create LineData object
-    LineData lineData = new LineData(dataSet);
-
-    // Configure X axis
-    XAxis xAxis = lineChart.getXAxis();
-    xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);  // Labels at bottom
-    xAxis.setGranularity(1f);                       // Minimum interval
-    xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
-    // IndexAxisValueFormatter uses our labels array for X axis
-
-    xAxis.setLabelRotationAngle(-45f);  // Rotate labels for readability
-
-    // Configure chart
-    lineChart.setData(lineData);
-    lineChart.getDescription().setEnabled(false);  // Hide description
-    lineChart.getLegend().setEnabled(true);        // Show legend
-    lineChart.setTouchEnabled(true);               // Allow touch
-    lineChart.setDragEnabled(true);                // Allow drag
-    lineChart.setScaleEnabled(true);               // Allow zoom
-    lineChart.invalidate();  // Refresh to show changes
-}
-
-    // ============================================================
-    // BAR CHART - Shows recent values as bars
-    // ============================================================
-    private void setupBarChart(List<SensorReading> readings) {
-        ArrayList<BarEntry> entries = new ArrayList<>();
+    private void setupLineChart(List<SensorReading> readings) {
+        ArrayList<Entry> entries = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
-        ArrayList<Integer> colors = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-
-        // Show last 10 readings (or fewer if less data)
-        int startIndex = Math.max(0, readings.size() - 10);
-        // Math.max ensures we don't get negative index
-
-        int barIndex = 0;
-        for (int i = startIndex; i < readings.size(); i++) {
+        for (int i = 0; i < readings.size(); i++) {
             SensorReading reading = readings.get(i);
-
-            try {
-                // BarEntry takes (x, y)
-                entries.add(new BarEntry(barIndex, reading.getValue()));
-                labels.add(sdf.format(new Date(reading.getTimestamp())));
-
-                // Color based on value
-                if (reading.getValue() < 30) colors.add(COLOR_GREEN);
-                else if (reading.getValue() <= 65) colors.add(COLOR_YELLOW);
-                else colors.add(COLOR_RED);
-
-                barIndex++;
-            } catch (NumberFormatException e) {
-                // Skip invalid
-            }
+            entries.add(new Entry(i, reading.getValue()));
+            labels.add(sdf.format(new Date(reading.getTimestamp())));
         }
 
         if (entries.isEmpty()) {
-            barChart.clear();
-            barChart.setNoDataText("No data available");
-            barChart.invalidate();
+            lineChart.clear();
+            lineChart.setNoDataText("No data available");
+            lineChart.invalidate();
             return;
         }
 
-        // Create dataset
-        BarDataSet dataSet = new BarDataSet(entries, "Recent Readings");
-        dataSet.setColors(colors);
+        LineDataSet dataSet = new LineDataSet(entries, "Sensor Values");
+        dataSet.setColor(COLOR_BLUE);
+        dataSet.setCircleColor(COLOR_BLUE);
+        dataSet.setLineWidth(2f);
+        dataSet.setCircleRadius(4f);
+        dataSet.setDrawValues(true);
         dataSet.setValueTextSize(10f);
+        dataSet.setValueTextColor(COLOR_BLUE);
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
 
-        BarData barData = new BarData(dataSet);
-        barData.setBarWidth(0.8f);          // Bar width (0-1)
-
-        // Configure X axis
-        XAxis xAxis = barChart.getXAxis();
+        LineData lineData = new LineData(dataSet);
+        XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
         xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
         xAxis.setLabelRotationAngle(-45f);
 
-        // Configure chart
-        barChart.setData(barData);
-        barChart.getDescription().setEnabled(false);
-        barChart.getLegend().setEnabled(false);     // Hide legend for cleaner look
-        barChart.setFitBars(true);                  // Make bars fit nicely
-
-        barChart.invalidate();
+        lineChart.setData(lineData);
+        lineChart.getDescription().setEnabled(false);
+        lineChart.getLegend().setEnabled(true);
+        lineChart.setTouchEnabled(true);
+        lineChart.setDragEnabled(true);
+        lineChart.setScaleEnabled(true);
+        lineChart.invalidate();
     }
 
-    // ============================================================
-    // PIE CHART - Shows distribution of Low/Medium/High
-    // ============================================================
-    private void setupPieChart(List<SensorReading> readings) {
-        int lowCount = 0;
-        int medCount = 0;
-        int highCount = 0;
-
-        for (SensorReading reading : readings) {
-            try {
-                if (reading.getValue() < 30) lowCount++;
-                else if (reading.getValue() <= 65) medCount++;
-                else highCount++;
-            } catch (NumberFormatException e) {
-                // skip
-            }
-        }
-
-        ArrayList<PieEntry> entries = new ArrayList<>();
-        ArrayList<Integer> colors = new ArrayList<>();
-
-        if (lowCount > 0) {
-            entries.add(new PieEntry(lowCount, "Low"));
-            colors.add(COLOR_GREEN);
-        }
-        if (medCount > 0) {
-            entries.add(new PieEntry(medCount, "Medium"));
-            colors.add(COLOR_YELLOW);
-        }
-        if (highCount > 0) {
-            entries.add(new PieEntry(highCount, "High"));
-            colors.add(COLOR_RED);
-        }
-
-        if (entries.isEmpty()) {
-            pieChart.clear();
-            pieChart.setNoDataText("No data available");
-            pieChart.invalidate();
-            return;
-        }
-
-        // Create dataset
-        PieDataSet dataSet = new PieDataSet(entries, "Distribution");
-        dataSet.setColors(colors);
-        dataSet.setValueTextSize(14f);
-        dataSet.setValueTextColor(Color.WHITE);
-        dataSet.setSliceSpace(2f);          // Space between slices
-
-        // Create PieData
-        PieData pieData = new PieData(dataSet);
-
-        // Configure chart
-        pieChart.setData(pieData);
-        pieChart.getDescription().setEnabled(false);
-        pieChart.setHoleRadius(40f);        // Size of center hole
-        pieChart.setTransparentCircleRadius(45f);
-        pieChart.setCenterText("Status\nDistribution");  // Text in center
-        pieChart.setCenterTextSize(12f);
-        pieChart.setEntryLabelTextSize(12f);
-        pieChart.setEntryLabelColor(Color.WHITE);
-        pieChart.getLegend().setEnabled(true);
-        pieChart.invalidate();
-    }
 
     private void navigateToActivity(Class<?> activityClass) {
         Intent intent = new Intent(GraphsActivity.this, activityClass);
         startActivity(intent);
-        finish();
     }
 }

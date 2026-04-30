@@ -16,10 +16,14 @@ import androidx.cardview.widget.CardView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
+/**
+ * MainActivity - The primary dashboard for the PigeonPal app.
+ * Displays real-time sensor data and provides controls for the UV lamp, radio, and ambient lights.
+ */
 public class MainActivity extends AppCompatActivity {
 
+    // UI elements for sensor data and device status
     private TextView tvSensorValue;
     private CardView uvLampCard;
     private TextView lampSubTxt;
@@ -31,27 +35,77 @@ public class MainActivity extends AppCompatActivity {
     private TextView ambientSubTxt;
     private ImageView ivAmbient;
     private Button btnRefresh;
-    private boolean uvLampStatus = false;
-    private boolean radioStatus = false;
-    private boolean ambientStatus = false;
+    
+    // Status variables to track device states
+    private boolean uvLampStatus;
+    private boolean radioStatus;
+    private boolean ambientStatus;
+    
     private TextView pigeonName;
-    private Boolean darkPref;
     private SocketManager socketManager;
+
+    /**
+     * Listener for socket events to update the UI when data is received from the server.
+     */
+    private final SocketManager.SocketListener socketListener = new SocketManager.SocketListener() {
+        @Override
+        public void onSocketConnected() {
+            Log.d("Socket", "Connected to server");
+        }
+
+        @Override
+        public void onSocketDisconnected() {
+            Log.d("Socket", "Disconnected from server");
+        }
+
+        @Override
+        public void onMessageReceived(float temp, Boolean lamp, Boolean light, Boolean radio) {
+            // Update UI on the main thread
+            runOnUiThread(() -> {
+                if (tvSensorValue != null) {
+                    tvSensorValue.setText(String.valueOf(temp));
+                }
+                // Sync local state with data from the server
+                uvLampStatus = lamp;
+                ambientStatus = light;
+                radioStatus = radio;
+                
+                // Update icons and text based on new states
+                updateUvLampUI();
+                updateRadioUI();
+                updateAmbientLightUI();
+            });
+        }
+
+        @Override
+        public void onError(Exception e) {
+            Log.e("Socket", "Error: " + e.getMessage());
+            Toast.makeText(MainActivity.this, "Connection Error", Toast.LENGTH_SHORT).show();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        // Initialize views and setup listeners
         initializeViews();
         setupBottomNavigation();
         setupUvLampListener();
         setupRadioListener();
         setupAmbientLightListener();
         setupRefreshListener();
+        
+        // Get the singleton SocketManager instance
         socketManager = SocketManager.getInstance();
-        setupSocketListener();
-        socketManager.startConnection("192.168.1.20", 2005);
+        
+        // Establish connection if not already active
+        if (!socketManager.isConnected()) {
+            socketManager.startConnection("192.168.1.20", 2005);
+        }
 
+        // Apply dark mode preference
         SharedPreferences darkPref = getSharedPreferences("darkModePrefs", MODE_PRIVATE);
         boolean isDarkModeOn = darkPref.getBoolean("isDarkModeOn", false);
 
@@ -65,20 +119,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh the pigeon name whenever we return to this screen
+        // Refresh display name and socket listener when returning to activity
         displayPigeonName();
-        setupSocketListener();
-
+        socketManager.addListener(socketListener);
+        updateLatestReading();
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (socketManager != null) {
-            socketManager.stopConnection();
-        }
+    protected void onPause() {
+        super.onPause();
+        // Remove listener to prevent memory leaks and unnecessary UI updates
+        socketManager.removeListener(socketListener);
     }
 
+    /**
+     * Finds and assigns UI components from the layout.
+     */
     private void initializeViews() {
         tvSensorValue = findViewById(R.id.tvSensorValue);
         uvLampCard = findViewById(R.id.uvLampCard);
@@ -94,12 +150,29 @@ public class MainActivity extends AppCompatActivity {
         btnRefresh = findViewById(R.id.btnRefresh);
     }
 
+    /**
+     * Reads the pigeon name from SharedPreferences and displays it.
+     */
     private void displayPigeonName() {
         SharedPreferences prefs = getSharedPreferences("PigeonPrefs", MODE_PRIVATE);
         String savedName = prefs.getString("pigeon_name", "Unset");
         pigeonName.setText(savedName);
     }
 
+    /**
+     * Updates the sensor display with the latest reading stored in DataManager.
+     */
+    private void updateLatestReading() {
+        List<SensorReading> readings = DataManager.getInstance().getAllReadings();
+        if (!readings.isEmpty()) {
+            float lastValue = readings.get(readings.size() - 1).getValue();
+            tvSensorValue.setText(String.valueOf(lastValue));
+        }
+    }
+
+    /**
+     * Configures the bottom navigation bar and activity transitions.
+     */
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigation);
         bottomNav.setSelectedItemId(R.id.nav_home);
@@ -119,17 +192,28 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Configures the refresh button to restart the socket connection.
+     */
     private void setupRefreshListener() {
         btnRefresh.setOnClickListener(v -> {
             Toast.makeText(MainActivity.this, "Refreshing", Toast.LENGTH_SHORT).show();
-            setupSocketListener();
+            socketManager.stopConnection();
             socketManager.startConnection("192.168.1.20", 2005);
         });
     }
 
+    /**
+     * Sets up the click listener for the UV Lamp card to toggle status and notify the server.
+     */
     private void setupUvLampListener() {
         uvLampCard.setOnClickListener(v -> {
-            updateUvLampStatus();
+            uvLampStatus = !uvLampStatus;
+            updateUvLampUI();
+            // Inform the server about the new state
+            socketManager.sendData(uvLampStatus ? "L1\n" : "L0\n");
+            
+            // Visual feedback for click interaction
             uvLampCard.setCardBackgroundColor(getColor(R.color.cardPress));
             new Handler().postDelayed(() ->
                     uvLampCard.setCardBackgroundColor(getColor(R.color.cardBackground)), 125
@@ -137,21 +221,29 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateUvLampStatus() {
-        if (!uvLampStatus) {
+    /**
+     * Updates the UV lamp UI components based on the current status.
+     */
+    private void updateUvLampUI() {
+        if (uvLampStatus) {
             lampSubTxt.setText("UV Lamp is on");
             ivLamp.setImageResource(R.drawable.ic_lamp_on);
-            uvLampStatus = true;
         } else {
             lampSubTxt.setText("UV Lamp is off");
             ivLamp.setImageResource(R.drawable.ic_lamp_off);
-            uvLampStatus = false;
         }
     }
 
+    /**
+     * Sets up the click listener for the Radio card to toggle status and notify the server.
+     */
     private void setupRadioListener() {
         radioCard.setOnClickListener(v -> {
-            updateRadioStatus();
+            radioStatus = !radioStatus;
+            updateRadioUI();
+            // Inform the server about the new state
+            socketManager.sendData(radioStatus ? "R1\n" : "R0\n");
+
             radioCard.setCardBackgroundColor(getColor(R.color.cardPress));
             new Handler().postDelayed(() ->
                     radioCard.setCardBackgroundColor(getColor(R.color.cardBackground)), 125
@@ -159,21 +251,29 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateRadioStatus() {
-        if (!radioStatus) {
+    /**
+     * Updates the Radio UI components based on the current status.
+     */
+    private void updateRadioUI() {
+        if (radioStatus) {
             radioSubTxt.setText("Radio is on");
             ivRadio.setImageResource(R.drawable.ic_radio_on);
-            radioStatus = true;
         } else {
             radioSubTxt.setText("Radio is off");
             ivRadio.setImageResource(R.drawable.ic_radio_off);
-            radioStatus = false;
         }
     }
 
+    /**
+     * Sets up the click listener for the Ambient Light card to toggle status and notify the server.
+     */
     private void setupAmbientLightListener() {
         ambientCard.setOnClickListener(v -> {
-            updateAmbientLightStatus();
+            ambientStatus = !ambientStatus;
+            updateAmbientLightUI();
+            // Inform the server about the new state
+            socketManager.sendData(ambientStatus ? "A1\n" : "A0\n");
+
             ambientCard.setCardBackgroundColor(getColor(R.color.cardPress));
             new Handler().postDelayed(() ->
                     ambientCard.setCardBackgroundColor(getColor(R.color.cardBackground)), 125
@@ -181,49 +281,24 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateAmbientLightStatus() {
-        if (!ambientStatus) {
+    /**
+     * Updates the Ambient Light UI components based on the current status.
+     */
+    private void updateAmbientLightUI() {
+        if (ambientStatus) {
             ambientSubTxt.setText("Ambient Light is on");
             ivAmbient.setImageResource(R.drawable.ic_room_light_on);
-            ambientStatus = true;
         } else {
             ambientSubTxt.setText("Ambient Light is off");
             ivAmbient.setImageResource(R.drawable.ic_room_light_off);
-            ambientStatus = false;
         }
     }
 
+    /**
+     * Starts a new activity for the given class.
+     */
     private void navigateToActivity(Class<?> activityClass) {
         Intent intent = new Intent(MainActivity.this, activityClass);
         startActivity(intent);
-        finish();
-    }
-
-    private void setupSocketListener() {
-        socketManager.setListener(new SocketManager.SocketListener() {
-            @Override
-            public void onSocketConnected() {
-                Log.d("Socket", "Connected to server");
-            }
-
-            @Override
-            public void onSocketDisconnected() {
-                Log.d("Socket", "Disconnected from server");
-            }
-
-            @Override
-            public void onMessageReceived(float message) {
-                runOnUiThread(() -> {
-                    tvSensorValue.setText(String.valueOf(message));
-                    DataManager.getInstance().addReading(message);
-                });
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Log.e("Socket", "Error: " + e.getMessage());
-                Toast.makeText(MainActivity.this, "Connection Error", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 }

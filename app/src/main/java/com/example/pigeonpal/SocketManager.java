@@ -4,47 +4,50 @@ import android.os.Handler;
 import android.os.Looper;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SocketManager - A Singleton class to handle TCP socket connections.
- * It manages a background thread to listen for incoming data and
- * communicates with the UI thread via a Listener interface.
+ * It manages a background thread to listen for incoming data and provides
+ * methods to send commands back to the server.
  */
 public class SocketManager {
 
-    // The single instance of SocketManager (Singleton Pattern)
+    // Singleton instance
     private static SocketManager instance;
     
-    // The listener that will receive updates (usually MainActivity)
-    private SocketListener listener;
+    // List of active listeners (Activities) to be notified of events
+    private final List<SocketListener> listeners = new ArrayList<>();
     
-    // Background thread for network operations
+    // Background thread for non-blocking network I/O
     private Thread connectionThread;
     
-    // The actual TCP socket used for communication
+    // The underlying TCP socket
     private Socket socket;
     
-    // Control flag to keep the connection running
+    // Connection state flag
     private boolean isRunning = false;
     
-    // Handler used to post updates back to the Main (UI) Thread
+    // Handler to post results back to the Main (UI) Thread
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private BufferedReader scanner;
+    
+    // Buffered reader for incoming stream
+    private BufferedReader in;
+    
+    // Output stream for sending data to server
+    private DataOutputStream out;
 
-    /**
-     * Private constructor to prevent multiple instances from being created.
-     */
+    // Private constructor for Singleton pattern
     private SocketManager() {}
 
     /**
-     * Returns the single instance of SocketManager.
-     * Uses the Singleton pattern to ensure only one connection exists across the entire app.
-     * 
-     * @return The singleton instance of SocketManager.
+     * Returns the global instance of the SocketManager.
      */
     public static synchronized SocketManager getInstance() {
         if (instance == null) {
@@ -54,147 +57,156 @@ public class SocketManager {
     }
 
     /**
-     * Interface for activities to listen for socket events.
-     * Any class that wants updates (like MainActivity) must implement this.
+     * Interface for components to receive socket state updates and data.
      */
     public interface SocketListener {
-        // Called when the connection is successfully established
         void onSocketConnected();
-        
-        // Called when the connection is closed
         void onSocketDisconnected();
-        
-        // Called when a new piece of data is received from the server
-        void onMessageReceived(float message);
-        
-        // Called when an error occurs during connection or data reading
+        // Received parsed message with sensor reading and device states
+        void onMessageReceived(float temp, Boolean lamp, Boolean light, Boolean radio);
         void onError(Exception e);
     }
 
     /**
-     * Sets the listener for socket events.
-     * 
-     * @param listener The listener implementation to receive updates.
+     * Registers a new listener for socket events.
      */
-    public void setListener(SocketListener listener) {
-        this.listener = listener;
+    public void addListener(SocketListener listener) {
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
     }
 
     /**
-     * Starts a background thread to connect to the server and listen for data.
-     * 
-     * @param host The IP address or hostname of the server.
-     * @param port The port number to connect to.
+     * Unregisters a listener (usually called in onPause or onDestroy).
+     */
+    public void removeListener(SocketListener listener) {
+        listeners.remove(listener);
+    }
+
+    /**
+     * Returns true if the socket is currently connected and running.
+     */
+    public boolean isConnected() {
+        return isRunning && socket != null && socket.isConnected();
+    }
+
+    /**
+     * Sends a raw string command to the server on a new background thread.
+     * @param data The command string (e.g., "L1\n")
+     */
+    public void sendData(String data) {
+        if (out != null && isRunning) {
+            new Thread(() -> {
+                try {
+                    out.writeBytes(data);
+                    out.flush(); // Ensure data is actually sent immediately
+                } catch (IOException e) {
+                    notifyError(e);
+                }
+            }).start();
+        }
+    }
+
+    /**
+     * Establishes a TCP connection and starts the listening loop.
+     * @param host Server IP address
+     * @param port Server port number
      */
     public void startConnection(String host, int port) {
-        // Don't start a new connection if one is already running
-        if (isRunning) return;
+        if (isRunning) return; // Prevent duplicate connections
         isRunning = true;
 
-        // All network operations MUST happen on a background thread in Android
         connectionThread = new Thread(() -> {
             try {
-                // 1. Resolve hostname and create a socket connection to the server
+                // Resolve host and connect
                 InetAddress inet = InetAddress.getByName(host);
                 socket = new Socket(inet, port);
                 
-                // 2. Notify the UI that we are connected
+                // Initialize I/O streams
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                out = new DataOutputStream(socket.getOutputStream());
+                
                 notifyConnected();
 
-                // 3. Get the input stream to read data from the server
-                scanner = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                // 4. Continuously read data while the connection is active
                 String line;
-                while (isRunning && (line = scanner.readLine()) != null) {
+                // Continuously read lines from the server
+                while (isRunning && (line = in.readLine()) != null) {
                     try {
-                        float message = Float.parseFloat(line.trim());
-                        if (listener != null) {
-                            // Send the individual reading to the UI thread
-                            notifyMessageReceived(message);
-                        }
-                    } catch (NumberFormatException e) {
-                        // Ignore invalid data
+                        // Expected format: "temperature,lampState,lightState,radioState"
+                        String[] parts = line.split(",");
+                        
+                        // Parse temperature and store in DataManager
+                        float temp = Float.parseFloat(parts[0].trim());
+                        DataManager.getInstance().addReading(temp);
+                        
+                        // Parse device states as booleans
+                        Boolean lamp = Boolean.parseBoolean(parts[1].trim());
+                        Boolean light = Boolean.parseBoolean(parts[2].trim());
+                        Boolean radio = Boolean.parseBoolean(parts[3].trim());
+                        
+                        // Push data to all active listeners
+                        notifyMessageReceived(temp, lamp, light, radio);
+                    } catch (Exception e) {
+                        // Log and skip malformed data lines
                     }
                 }
             } catch (IOException e) {
-                // If an error occurs while running, notify the listener
                 if (isRunning) {
                     notifyError(e);
                 }
             } finally {
-                // Ensure the connection is cleaned up when the thread exits
-                stopConnection();
+                stopConnection(); // Ensure cleanup on thread exit
             }
         });
         
-        // Start the background thread
         connectionThread.start();
     }
 
     /**
-     * Stops the connection, closes the socket, and shuts down the background thread.
+     * Closes the connection and releases all resources.
      */
     public void stopConnection() {
         isRunning = false;
         try {
-            // Close the socket to stop blocking I/O operations
             if (socket != null && !socket.isClosed()) {
                 socket.close();
             }
+            if (in != null) in.close();
+            if (out != null) out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         
-        // Interrupt the thread if it's currently sleeping or blocking
         if (connectionThread != null) {
             connectionThread.interrupt();
             connectionThread = null;
         }
         
-        // Notify the UI that we are disconnected
         notifyDisconnected();
     }
 
-    // ============================================================
-    // NOTIFICATION HELPERS
-    // All of these use mainHandler.post() to ensure the callback
-    // runs on the UI Thread, which is required for UI updates.
-    // ============================================================
-
-    /**
-     * Posts a connection notification to the UI thread.
-     */
+    // Helper methods to execute callbacks on the UI Thread
     private void notifyConnected() {
         mainHandler.post(() -> {
-            if (listener != null) listener.onSocketConnected();
+            for (SocketListener l : new ArrayList<>(listeners)) l.onSocketConnected();
         });
     }
 
-    /**
-     * Posts a disconnection notification to the UI thread.
-     */
     private void notifyDisconnected() {
         mainHandler.post(() -> {
-            if (listener != null) listener.onSocketDisconnected();
+            for (SocketListener l : new ArrayList<>(listeners)) l.onSocketDisconnected();
         });
     }
 
-    /**
-     * Posts a received message notification to the UI thread.
-     */
-    private void notifyMessageReceived(float message) {
+    private void notifyMessageReceived(float temp, Boolean lamp, Boolean light, Boolean radio) {
         mainHandler.post(() -> {
-            if (listener != null) listener.onMessageReceived(message);
+            for (SocketListener l : new ArrayList<>(listeners)) l.onMessageReceived(temp, lamp, light, radio);
         });
     }
 
-    /**
-     * Posts an error notification to the UI thread.
-     */
     private void notifyError(Exception e) {
         mainHandler.post(() -> {
-            if (listener != null) listener.onError(e);
+            for (SocketListener l : new ArrayList<>(listeners)) l.onError(e);
         });
     }
 }

@@ -25,7 +25,8 @@ private static DataManager instance;
     }
 
     public void addReading(float value) {
-        SensorReading reading = new SensorReading(value);
+        long timestamp = System.currentTimeMillis();
+        SensorReading reading = new SensorReading(value,timestamp);
         readings.add(reading);
     }
 

@@ -9,9 +9,11 @@ public class SensorReading {
      * Constructor - creates a new SensorReading
      *
      * @param value The sensor value
+     * @param timestamp The timestamp in milliseconds
      */
-    public SensorReading(float value) {
+    public SensorReading(float value, long timestamp) {
         this.value = value;
+        this.timestamp = timestamp;
        // this.timestamp = timestamp;
         // 'this' refers to the current object
         // this.value = the object's field
