@@ -7,22 +7,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF">
+    android:background="@color/backgroundColor">
 
     <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:padding="16dp">
         <!-- ScrollView allows scrolling if content is taller than screen -->
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="24dp">
+            android:orientation="vertical">
 
             <!-- Title -->
             <LinearLayout
@@ -41,7 +40,7 @@
                         android:layout_height="wrap_content"
                         android:text="PigeonPal"
                         android:textSize="32sp"
-                        android:textColor="@color/purple_dark"
+                        android:textColor="@color/TextMain"
                         android:textStyle="bold"/>
 
                     <TextView
@@ -50,7 +49,7 @@
                         android:layout_height="wrap_content"
                         android:text="For your pigeon needs"
                         android:textSize="16sp"
-                        android:textColor="@color/purple_grey" />
+                        android:textColor="@color/TextSub" />
                 </LinearLayout>
 
                 <ImageView
@@ -62,6 +61,15 @@
                     android:layout_gravity="center" />
 
             </LinearLayout>
+            <TextView
+                android:id="@+id/pigeonName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Unset"
+                android:textSize="24sp"
+                android:textColor="@color/TextSub"
+                android:textAlignment="center"
+                android:paddingBottom="8dp"/>
             <!-- Cage Temperature Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -69,7 +77,7 @@
                 android:layout_marginBottom="24dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
-                app:cardBackgroundColor="#F8F9FA">
+                app:cardBackgroundColor="@color/cardBackground">
                 <!-- CardView creates card with shadow and rounded corners -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -83,7 +91,7 @@
                         android:layout_height="wrap_content"
                         android:text="Current Cage Temperature"
                         android:textSize="14sp"
-                        android:textColor="@color/purple_dark"
+                        android:textColor="@color/TextMain"
                         android:layout_marginBottom="8dp"/>
 
                     <TextView
@@ -92,143 +100,273 @@
                         android:layout_height="wrap_content"
                         android:text="--"
                         android:textSize="48sp"
-                        android:textColor="@color/purple_grey"
+                        android:textColor="@color/TextSub"
                         android:textStyle="bold"/>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <!-- UV Lamp Card -->
-            <androidx.cardview.widget.CardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="#FFFFFF">
+                android:orientation="horizontal">
 
-                <LinearLayout
+                <!-- UV Lamp Card -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/uvLampCard"
+                    android:layout_weight="1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:gravity="center_vertical">
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/cardBackground">>
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="2"
-                        android:orientation="vertical">
+                        android:orientation="horizontal"
+                        android:paddingVertical="16dp"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="8dp"
+                        android:gravity="center_vertical">
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="UV Lamp"
-                            android:textColor="@color/purple_dark"
-                            android:textSize="16sp" />
+                            android:layout_weight="2"
+                            android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/lampSubTxt"
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="UV Lamp"
+                                android:textColor="@color/TextMain"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/lampSubTxt"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="No Connection"
+                                android:textColor="@color/TextSub"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Toggle UV lamp"
-                            android:textColor="@color/purple_grey"
-                            android:textSize="12sp" />
-
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:src="@drawable/ic_lamp_off"
-                            app:itemIconTint="#FFFFFF"
-                            android:layout_gravity="center"
-                            android:id="@+id/ivLamp" />
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:src="@drawable/ic_lamp_off"
+                                app:itemIconTint="#FFFFFF"
+                                android:layout_gravity="center"
+                                android:id="@+id/ivLamp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+                <!-- Radio Card -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/radioCard"
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/cardBackground">>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingVertical="16dp"
+                        android:paddingLeft="16dp"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="2"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Radio"
+                                android:textColor="@color/TextMain"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/radioSubTxt"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="No Connection"
+                                android:textColor="@color/TextSub"
+                                android:textSize="12sp" />
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:src="@drawable/ic_radio_off"
+                                app:itemIconTint="#FFFFFF"
+                                android:layout_gravity="center"
+                                android:id="@+id/ivRadio" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
 
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchLamp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:thumbTint="@color/switch_thumb_color"
-                        app:trackTint="@color/switch_track_color"/>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-            <!-- Radio Card -->
-            <androidx.cardview.widget.CardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="#FFFFFF">
+                android:orientation="horizontal">
 
-                <LinearLayout
+                <!-- Ambient Light -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/ambientCard"
+                    android:layout_weight="1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:gravity="center_vertical">
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/cardBackground">>
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="2"
-                        android:orientation="vertical">
+                        android:orientation="horizontal"
+                        android:paddingVertical="16dp"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="8dp"
+                        android:gravity="center_vertical">
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Radio"
-                            android:textColor="@color/purple_dark"
-                            android:textSize="16sp" />
+                            android:layout_weight="2"
+                            android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/radioSubTxt"
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Ambient Light"
+                                android:textColor="@color/TextMain"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/ambientSubTxt"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="No Connection"
+                                android:textColor="@color/TextSub"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Toggle Radio"
-                            android:textColor="@color/purple_grey"
-                            android:textSize="12sp" />
-
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:src="@drawable/ic_radio_off"
-                            app:itemIconTint="#FFFFFF"
-                            android:layout_gravity="center"
-                            android:id="@+id/ivRadio" />
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:src="@drawable/ic_room_light_off"
+                                app:itemIconTint="#FFFFFF"
+                                android:layout_gravity="center"
+                                android:id="@+id/ivAmbient" />
+
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+                <!-- TBD Card -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/TBD1Card"
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/cardBackground">>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingVertical="16dp"
+                        android:paddingLeft="16dp"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="2"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="TBD"
+                                android:textColor="@color/TextMain"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/TBD1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="No Connection"
+                                android:textColor="@color/TextSub"
+                                android:textSize="12sp" />
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:src="@drawable/ic_radio_off"
+                                app:itemIconTint="#FFFFFF"
+                                android:layout_gravity="center"
+                                android:id="@+id/ivTBD1" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchRadio"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:thumbTint="@color/switch_thumb_color"
-                        app:trackTint="@color/switch_track_color"/>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+            <!-- Bluetooth Connection -->
+            <Button
+                android:id="@+id/btnRefresh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Refresh Connection"
+                android:backgroundTint="#3498DB"
+                android:textColor="#FFFFFF"/>
 
         </LinearLayout>
     </ScrollView>
@@ -238,7 +376,7 @@
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/backgroundColor"
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"
