@@ -119,11 +119,13 @@ private void setupLineChart(List<SensorReading> readings) {
 
     for (int i = 0; i < readings.size(); i++) {
         SensorReading reading = readings.get(i);
-
-        entries.add(new Entry(i, reading.getValue()));
-
-        // Create time label for this point
-        labels.add(sdf.format(new Date(reading.getTimestamp())));
+        try {
+            entries.add(new Entry(i, reading.getValue()));
+            // Create time label for this point
+            labels.add(sdf.format(new Date(reading.getTimestamp())));
+        } catch (NumberFormatException e) {
+            // Skip invalid readings
+        }
     }
 
     if (entries.isEmpty()) {
@@ -186,20 +188,20 @@ private void setupLineChart(List<SensorReading> readings) {
         for (int i = startIndex; i < readings.size(); i++) {
             SensorReading reading = readings.get(i);
 
-            // BarEntry takes (x, y)
-            entries.add(new BarEntry(barIndex, reading.getValue()));
-            labels.add(sdf.format(new Date(reading.getTimestamp())));
+            try {
+                // BarEntry takes (x, y)
+                entries.add(new BarEntry(barIndex, reading.getValue()));
+                labels.add(sdf.format(new Date(reading.getTimestamp())));
 
-            // Color based on value
-            if (reading.getValue() < 30) {
-                colors.add(COLOR_RED);
-            } else if (reading.getValue() <= 65) {
-                colors.add(COLOR_YELLOW);
-            } else {
-                colors.add(COLOR_GREEN);
+                // Color based on value
+                if (reading.getValue() < 30) colors.add(COLOR_GREEN);
+                else if (reading.getValue() <= 65) colors.add(COLOR_YELLOW);
+                else colors.add(COLOR_RED);
+
+                barIndex++;
+            } catch (NumberFormatException e) {
+                // Skip invalid
             }
-
-            barIndex++;
         }
 
         if (entries.isEmpty()) {
@@ -210,11 +212,10 @@ private void setupLineChart(List<SensorReading> readings) {
         }
 
         // Create dataset
-        BarDataSet dataSet = new BarDataSet(entries, "Recent Values");
-        dataSet.setColors(colors);          // Apply our color array
+        BarDataSet dataSet = new BarDataSet(entries, "Recent Readings");
+        dataSet.setColors(colors);
         dataSet.setValueTextSize(10f);
 
-        // Create BarData
         BarData barData = new BarData(dataSet);
         barData.setBarWidth(0.8f);          // Bar width (0-1)
 
@@ -238,26 +239,34 @@ private void setupLineChart(List<SensorReading> readings) {
     // PIE CHART - Shows distribution of Low/Medium/High
     // ============================================================
     private void setupPieChart(List<SensorReading> readings) {
+        int lowCount = 0;
+        int medCount = 0;
+        int highCount = 0;
+
+        for (SensorReading reading : readings) {
+            try {
+                if (reading.getValue() < 30) lowCount++;
+                else if (reading.getValue() <= 65) medCount++;
+                else highCount++;
+            } catch (NumberFormatException e) {
+                // skip
+            }
+        }
+
         ArrayList<PieEntry> entries = new ArrayList<>();
         ArrayList<Integer> colors = new ArrayList<>();
 
-        // Count readings in each category
-        int lowCount = DataManager.getInstance().countByStatus("Low");
-        int mediumCount = DataManager.getInstance().countByStatus("Medium");
-        int highCount = DataManager.getInstance().countByStatus("High");
-
-        // Only add entries if count > 0
         if (lowCount > 0) {
             entries.add(new PieEntry(lowCount, "Low"));
-            colors.add(COLOR_RED);
+            colors.add(COLOR_GREEN);
         }
-        if (mediumCount > 0) {
-            entries.add(new PieEntry(mediumCount, "Medium"));
+        if (medCount > 0) {
+            entries.add(new PieEntry(medCount, "Medium"));
             colors.add(COLOR_YELLOW);
         }
         if (highCount > 0) {
             entries.add(new PieEntry(highCount, "High"));
-            colors.add(COLOR_GREEN);
+            colors.add(COLOR_RED);
         }
 
         if (entries.isEmpty()) {
@@ -289,6 +298,7 @@ private void setupLineChart(List<SensorReading> readings) {
         pieChart.getLegend().setEnabled(true);
         pieChart.invalidate();
     }
+
     private void navigateToActivity(Class<?> activityClass) {
         Intent intent = new Intent(GraphsActivity.this, activityClass);
         startActivity(intent);

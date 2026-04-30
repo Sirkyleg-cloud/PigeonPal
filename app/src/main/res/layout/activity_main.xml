@@ -359,6 +359,14 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
             </LinearLayout>
+            <!-- Bluetooth Connection -->
+            <Button
+                android:id="@+id/btnRefresh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Refresh Connection"
+                android:backgroundTint="#3498DB"
+                android:textColor="#FFFFFF"/>
 
         </LinearLayout>
     </ScrollView>

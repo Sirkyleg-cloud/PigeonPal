@@ -4,12 +4,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.cardview.widget.CardView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.List;
+import java.util.concurrent.Semaphore;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,13 +30,13 @@ public class MainActivity extends AppCompatActivity {
     private CardView ambientCard;
     private TextView ambientSubTxt;
     private ImageView ivAmbient;
-    
+    private Button btnRefresh;
     private boolean uvLampStatus = false;
     private boolean radioStatus = false;
     private boolean ambientStatus = false;
-    
     private TextView pigeonName;
     private Boolean darkPref;
+    private SocketManager socketManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +47,10 @@ public class MainActivity extends AppCompatActivity {
         setupUvLampListener();
         setupRadioListener();
         setupAmbientLightListener();
+        setupRefreshListener();
+        socketManager = SocketManager.getInstance();
+        setupSocketListener();
+        socketManager.startConnection("192.168.1.20", 2005);
 
         SharedPreferences darkPref = getSharedPreferences("darkModePrefs", MODE_PRIVATE);
         boolean isDarkModeOn = darkPref.getBoolean("isDarkModeOn", false);
@@ -56,7 +67,18 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         // Refresh the pigeon name whenever we return to this screen
         displayPigeonName();
+        setupSocketListener();
+
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (socketManager != null) {
+            socketManager.stopConnection();
+        }
+    }
+
     private void initializeViews() {
         tvSensorValue = findViewById(R.id.tvSensorValue);
         uvLampCard = findViewById(R.id.uvLampCard);
@@ -69,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
         ambientSubTxt = findViewById(R.id.ambientSubTxt);
         ivAmbient = findViewById(R.id.ivAmbient);
         pigeonName = findViewById(R.id.pigeonName);
+        btnRefresh = findViewById(R.id.btnRefresh);
     }
 
     private void displayPigeonName() {
@@ -93,6 +116,14 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             return false;
+        });
+    }
+
+    private void setupRefreshListener() {
+        btnRefresh.setOnClickListener(v -> {
+            Toast.makeText(MainActivity.this, "Refreshing", Toast.LENGTH_SHORT).show();
+            setupSocketListener();
+            socketManager.startConnection("192.168.1.20", 2005);
         });
     }
 
@@ -162,9 +193,47 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void updateReadingCount() {
+        if (tvSensorValue != null) {
+            List<SensorReading> readings = DataManager.getInstance().getAllReadings();
+            if (!readings.isEmpty()) {
+                SensorReading last = readings.get(readings.size() - 1);
+                tvSensorValue.setText(String.valueOf(last.getValue()));
+            }
+        }
+    }
+
     private void navigateToActivity(Class<?> activityClass) {
         Intent intent = new Intent(MainActivity.this, activityClass);
         startActivity(intent);
         finish();
+    }
+
+    private void setupSocketListener() {
+        socketManager.setListener(new SocketManager.SocketListener() {
+            @Override
+            public void onSocketConnected() {
+                Log.d("Socket", "Connected to server");
+            }
+
+            @Override
+            public void onSocketDisconnected() {
+                Log.d("Socket", "Disconnected from server");
+            }
+
+            @Override
+            public void onMessageReceived(float message) {
+                runOnUiThread(() -> {
+                    tvSensorValue.setText(String.valueOf(message));
+                    DataManager.getInstance().addReading(message);
+                });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e("Socket", "Error: " + e.getMessage());
+                Toast.makeText(MainActivity.this, "Connection Error", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
