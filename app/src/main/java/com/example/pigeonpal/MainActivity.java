@@ -193,16 +193,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateReadingCount() {
-        if (tvSensorValue != null) {
-            List<SensorReading> readings = DataManager.getInstance().getAllReadings();
-            if (!readings.isEmpty()) {
-                SensorReading last = readings.get(readings.size() - 1);
-                tvSensorValue.setText(String.valueOf(last.getValue()));
-            }
-        }
-    }
-
     private void navigateToActivity(Class<?> activityClass) {
         Intent intent = new Intent(MainActivity.this, activityClass);
         startActivity(intent);
